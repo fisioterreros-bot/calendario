@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario — FisioTerreros</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lora:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F4F2EE;--surface:#FFFFFF;--srf2:#EFEDE8;--border:#E0DDD7;--brd2:#CFCBC4;
+  --text:#252219;--txt2:#655F57;--txt3:#A09891;--accent:#C4784A;
+  --danger:#C0413A;--dngbg:#FDEEEC;--antonio:#3B6EA5;--antbg:#EDF4FB;
+  --r:10px;--shd:0 1px 6px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
+  --shd-m:0 12px 48px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.08);
+  --fn:'Outfit','Segoe UI',system-ui,sans-serif;--fns:'Lora',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fn);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ── LOGIN ── */
+.login-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.login-overlay.hidden{display:none}
+.login-box{background:var(--surface);border-radius:16px;padding:36px 32px;
+  width:100%;max-width:360px;box-shadow:var(--shd-m)}
+.login-head{text-align:center;margin-bottom:28px}
+.login-head h1{font-family:var(--fns);font-size:22px;font-weight:500;margin:12px 0 5px}
+.login-head p{font-size:13px;color:var(--txt3)}
+.login-frow{margin-bottom:14px}
+.login-err{background:var(--dngbg);color:var(--danger);border:1px solid #F0C5C3;
+  border-radius:7px;padding:8px 12px;font-size:13px;margin-bottom:12px;display:none}
+.login-btn{width:100%;height:40px;border:none;background:var(--antonio);border-radius:8px;
+  font:600 15px/1 var(--fn);color:#fff;cursor:pointer;transition:opacity .12s;margin-top:4px}
+.login-btn:hover{opacity:.88}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── HEADER ── */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);height:56px;
+  display:flex;align-items:center;gap:9px;padding:0 16px;position:sticky;top:0;z-index:60;user-select:none}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-name{font-family:var(--fns);font-weight:500;font-size:15px;letter-spacing:-.01em;white-space:nowrap}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#C4784A;flex-shrink:0;transition:background .3s;cursor:help}
+.hsep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.nav-row{display:flex;align-items:center;gap:5px}
+.period{font:600 15px/1 var(--fn);min-width:178px;text-align:center}
+.ibtn{width:30px;height:30px;border:1px solid var(--border);background:var(--surface);
+  border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--txt2);transition:background .12s,border-color .12s;flex-shrink:0}
+.ibtn:hover{background:var(--srf2);border-color:var(--brd2)}
+.ibtn svg{width:13px;height:13px}
+.tbtn{height:30px;padding:0 11px;border:1px solid var(--border);background:var(--surface);
+  border-radius:7px;cursor:pointer;font:500 12px/1 var(--fn);color:var(--txt2);transition:background .12s}
+.tbtn:hover{background:var(--srf2)}
+.spacer{flex:1}
+#pillsWrap{display:flex;gap:5px;flex-shrink:0}
+.fpill{height:28px;padding:0 11px;border:1.5px solid var(--border);border-radius:14px;
+  background:transparent;font:500 11px/1 var(--fn);cursor:pointer;color:var(--txt3);transition:all .12s}
+.fpill:hover{color:var(--txt2);border-color:var(--brd2)}
+.vtoggle{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;flex-shrink:0}
+.vbtn{height:30px;padding:0 12px;border:none;background:transparent;
+  font:500 12px/1 var(--fn);color:var(--txt2);cursor:pointer;transition:background .12s,color .12s}
+.vbtn:hover:not(.on){background:var(--srf2)}
+.vbtn.on{background:var(--text);color:#fff}
+.cfgbtn{width:30px;height:30px;border:1px solid var(--border);background:var(--srf2);
+  border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--txt3);transition:all .12s;flex-shrink:0}
+.cfgbtn:hover{color:var(--txt2);border-color:var(--brd2);background:var(--border)}
+.cfgbtn svg{width:14px;height:14px}
+.addbtn{height:30px;padding:0 13px;border:none;background:var(--antonio);border-radius:7px;
+  cursor:pointer;font:600 12px/1 var(--fn);color:#fff;display:flex;align-items:center;gap:5px;
+  transition:opacity .12s;flex-shrink:0}
+.addbtn:hover{opacity:.88}
+.addbtn svg{width:11px;height:11px}
+.logoutbtn{height:30px;padding:0 11px;border:1px solid var(--border);background:var(--surface);
+  border-radius:7px;cursor:pointer;font:500 12px/1 var(--fn);color:var(--txt3);
+  transition:all .12s;flex-shrink:0;white-space:nowrap}
+.logoutbtn:hover{background:var(--dngbg);color:var(--danger);border-color:#F0C5C3}
+
+/* ── MAIN ── */
+.main{padding:16px 18px}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:40vh;gap:12px;color:var(--txt3)}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--antonio);
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MONTH ── */
+.mwrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shd)}
+.mhdr{display:grid;grid-template-columns:repeat(7,1fr);background:var(--srf2);border-bottom:2px solid var(--border)}
+.mhd{padding:8px 0;text-align:center;font:600 10px/1 var(--fn);letter-spacing:.07em;text-transform:uppercase;color:var(--txt3)}
+.mbody{display:grid;grid-template-columns:repeat(7,1fr)}
+.mday{border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  min-height:104px;padding:6px;cursor:pointer;transition:background .1s;overflow:hidden}
+.mday:nth-child(7n){border-right:none}
+.mday:hover{background:var(--srf2)}
+.mday.other{background:#FAFAF8}
+.mday.other .mnum{color:var(--txt3)}
+.mday.wkend:not(.other){background:#FDFCFA}
+.mnum{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font:600 13px/1 var(--fn);color:var(--txt2);margin-bottom:4px}
+.mday.today .mnum{background:var(--accent);color:#fff}
+.chip{display:block;font:500 11px/1.3 var(--fn);padding:2px 5px;border-radius:4px;
+  margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:opacity .1s}
+.chip:hover{opacity:.7}
+.more{font:500 10px/1 var(--fn);color:var(--txt3);padding:2px 3px}
+
+/* ── WEEK ── */
+.wwrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shd)}
+.whdr{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:2px solid var(--border);
+  background:var(--srf2);position:sticky;top:56px;z-index:20}
+.whdr-time{}
+.whdr-day{border-left:1px solid var(--border);padding:10px 6px;text-align:center}
+.wdn{font:600 10px/1 var(--fn);letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:3px}
+.wdd{font:700 20px/1 var(--fn);color:var(--txt2)}
+.whdr-day.today .wdd{color:var(--accent)}
+.wbody{display:flex;overflow-y:auto;max-height:calc(100vh - 164px)}
+.wbody::-webkit-scrollbar{width:5px}
+.wbody::-webkit-scrollbar-track{background:transparent}
+.wbody::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.tcol{position:relative;width:52px;height:900px;flex-shrink:0;background:var(--surface);z-index:5}
+.tlabel{position:absolute;right:8px;font:500 10px/1 var(--fn);color:var(--txt3);transform:translateY(-50%);white-space:nowrap}
+.wgrid{display:grid;grid-template-columns:repeat(7,1fr);flex:1}
+.wcol{border-left:1px solid var(--border);position:relative;height:900px;cursor:pointer}
+.wcol:hover{background:rgba(0,0,0,.008)}
+.hline{position:absolute;left:0;right:0;border-top:1px solid var(--border);pointer-events:none}
+.hline-half{position:absolute;left:0;right:0;border-top:1px dashed rgba(0,0,0,.07);pointer-events:none}
+.wapt{position:absolute;border-radius:5px;padding:3px 5px;font:600 11px/1.3 var(--fn);
+  cursor:pointer;overflow:hidden;transition:opacity .1s,transform .08s;z-index:2;color:#fff}
+.wapt:hover{opacity:.82;transform:scale(1.015);z-index:3}
+.wapt-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wapt-time{font-size:10px;opacity:.85;font-weight:400}
+.wapt-svc{font-size:10px;opacity:.75;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── MODAL BASE ── */
+.overlay{position:fixed;inset:0;background:rgba(20,18,14,.52);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:456px;
+  box-shadow:var(--shd-m);transform:translateY(14px) scale(.982);
+  transition:transform .22s cubic-bezier(.2,.8,.3,1);overflow:hidden;max-height:93vh;overflow-y:auto}
+.overlay.open .modal{transform:none}
+.mhd2{display:flex;align-items:center;justify-content:space-between;padding:17px 22px 13px;border-bottom:1px solid var(--border)}
+.mtitle{font:700 16px/1 var(--fn)}
+.mxbtn{width:26px;height:26px;border:none;background:var(--srf2);border-radius:6px;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--txt2);transition:background .12s}
+.mxbtn:hover{background:var(--border)}
+.mform{padding:16px 22px 0}
+.frow{margin-bottom:13px}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+label{display:block;font:600 10px/1 var(--fn);color:var(--txt2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+input[type=text],input[type=tel],input[type=date],input[type=time],input[type=email],input[type=password],select,textarea{
+  width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font:400 14px/1.4 var(--fn);color:var(--text);background:var(--surface);
+  outline:none;transition:border-color .15s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--antonio)}
+textarea{min-height:56px;resize:vertical}
+select{cursor:pointer}
+.qdurs{display:flex;gap:6px}
+.qdur{padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;
+  font:500 12px/1 var(--fn);color:var(--txt2);background:transparent;cursor:pointer;transition:all .12s}
+.qdur:hover{border-color:var(--brd2);color:var(--text)}
+.qdur.on{border-color:var(--antonio);background:var(--antbg);color:var(--antonio)}
+.phbtns{display:grid;gap:7px}
+.phbtn{padding:9px 13px;border:2px solid var(--border);border-radius:8px;
+  font:600 13px/1 var(--fn);cursor:pointer;background:transparent;color:var(--txt2);transition:all .15s;text-align:left}
+.rwrap{border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:13px}
+.rhead{font:600 10px/1 var(--fn);color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px}
+.rpills{display:flex;flex-wrap:wrap;gap:5px}
+.rpill{padding:4px 10px;border:1.5px solid var(--border);border-radius:20px;
+  font:500 11px/1 var(--fn);cursor:pointer;color:var(--txt2);background:transparent;transition:all .12s}
+.rpill.on{border-color:var(--antonio);background:var(--antbg);color:var(--antonio)}
+.rend{margin-top:10px;display:none}
+.rend.show{display:block}
+.mfoot{display:flex;align-items:center;gap:8px;padding:13px 22px;border-top:1px solid var(--border);margin-top:16px}
+.bdel{height:33px;padding:0 13px;border:1px solid #F0C5C3;background:var(--dngbg);
+  border-radius:7px;font:600 13px/1 var(--fn);color:var(--danger);cursor:pointer;margin-right:auto;transition:background .12s}
+.bdel:hover{background:#FAE0DE}
+.bcancel{height:33px;padding:0 13px;border:1px solid var(--border);background:var(--srf2);
+  border-radius:7px;font:600 13px/1 var(--fn);color:var(--txt2);cursor:pointer;transition:background .12s}
+.bcancel:hover{background:var(--border)}
+.bsave{height:33px;padding:0 15px;border:none;background:var(--antonio);border-radius:7px;
+  font:600 13px/1 var(--fn);color:#fff;cursor:pointer;transition:opacity .12s}
+.bsave:hover{opacity:.88}
+.dconfirm{display:none;padding:20px 22px 22px}
+.dconfirm.show{display:block}
+.dconfirm p{font-size:14px;color:var(--txt2);margin-bottom:14px;line-height:1.55}
+.dopts{display:flex;flex-direction:column;gap:7px}
+.dopt{padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+  font:500 13px/1 var(--fn);cursor:pointer;text-align:left;background:transparent;color:var(--text);transition:all .12s}
+.dopt:hover{background:var(--srf2)}
+.dopt.danger{color:var(--danger);border-color:#F0C5C3}
+.dopt.danger:hover{background:var(--dngbg)}
+
+/* ── SETTINGS ── */
+.smodal{max-width:420px}
+.stabs{display:flex;border-bottom:1px solid var(--border);background:var(--srf2)}
+.stab{flex:1;height:40px;border:none;background:transparent;font:500 13px/1 var(--fn);
+  color:var(--txt2);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;margin-bottom:-1px}
+.stab.on{color:var(--antonio);border-bottom-color:var(--antonio);background:var(--surface)}
+.stabpane{padding:16px 22px;display:none}
+.stabpane.show{display:block}
+.slist{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:190px;overflow-y:auto;min-height:20px}
+.sempty{font:400 13px/1 var(--fn);color:var(--txt3);padding:6px 0}
+.sitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--border);border-radius:7px}
+.sitem-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.sitem-name{flex:1;font:500 14px/1 var(--fn);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sitem-badge{font:500 11px/1 var(--fn);color:var(--txt3);background:var(--srf2);padding:3px 8px;border-radius:10px;white-space:nowrap}
+.sitem-del{width:24px;height:24px;border:none;background:transparent;cursor:pointer;color:var(--txt3);
+  border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;flex-shrink:0;transition:all .12s}
+.sitem-del:hover{background:var(--dngbg);color:var(--danger)}
+.sadd{border:1.5px dashed var(--border);border-radius:9px;padding:12px 14px}
+.sadd-title{font:600 10px/1 var(--fn);color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:9px}
+.palette{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}
+.cpick{width:24px;height:24px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,border-color .12s}
+.cpick.on{border-color:#fff;outline:2.5px solid var(--text);transform:scale(1.18)}
+.dur-opts{display:flex;gap:6px;margin:9px 0}
+.dur-opt{padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;
+  font:500 12px/1 var(--fn);color:var(--txt2);background:transparent;cursor:pointer;transition:all .12s}
+.dur-opt.on{border-color:var(--antonio);background:var(--antbg);color:var(--antonio)}
+.sbtn{display:block;width:100%;height:32px;margin-top:10px;border:none;background:var(--antonio);
+  border-radius:7px;font:600 13px/1 var(--fn);color:#fff;cursor:pointer;transition:opacity .12s}
+.sbtn:hover{opacity:.88}
+.sdivider{height:1px;background:var(--border)}
+.sfooter{display:flex;justify-content:flex-end;padding:13px 22px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;
+  padding:9px 15px;border-radius:8px;font:500 13px/1 var(--fn);box-shadow:var(--shd-m);
+  z-index:500;opacity:0;transform:translateY(8px);transition:all .18s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-head">
+      <svg width="48" height="48" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="#5C7A4E" opacity=".15"/>
+        <path d="M14 6.5v15M8.5 14h11" stroke="#5C7A4E" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="14" cy="14" r="2" fill="#5C7A4E"/>
+      </svg>
+      <h1>FisioTerreros</h1>
+      <p>Calendario de citas</p>
+    </div>
+    <div class="login-frow">
+      <label for="loginEmail">Correo electrónico</label>
+      <input type="email" id="loginEmail" placeholder="fisio@fisioterreros.com" autocomplete="email">
+    </div>
+    <div class="login-frow">
+      <label for="loginPass">Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" id="loginBtn">Entrar →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="logo" title="Fisioterapia Avanzada">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="13" fill="#5C7A4E" opacity=".13"/>
+      <path d="M14 6.5v15M8.5 14h11" stroke="#5C7A4E" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="2" fill="#5C7A4E"/>
+    </svg>
+    <span class="logo-name">FisioTerreros</span>
+  </div>
+  <div id="statusDot" class="status-dot" title="Conectando..."></div>
+  <div class="hsep"></div>
+  <div class="nav-row">
+    <button class="ibtn" id="btnPrev">
+      <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2.5L4.5 6.5 8 10.5"/></svg>
+    </button>
+    <button class="tbtn" id="btnToday">Hoy</button>
+    <button class="ibtn" id="btnNext">
+      <svg viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 2.5L8.5 6.5 5 10.5"/></svg>
+    </button>
+  </div>
+  <span class="period" id="period"></span>
+  <div class="spacer"></div>
+  <div id="pillsWrap"></div>
+  <div class="hsep"></div>
+  <div class="vtoggle">
+    <button class="vbtn on" data-v="month">Mes</button>
+    <button class="vbtn" data-v="week">Semana</button>
+  </div>
+  <div class="hsep"></div>
+  <button class="cfgbtn" id="btnCfg" title="Configuración">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="7" cy="7" r="2.2"/>
+      <path d="M7 1v1.4M7 11.6V13M1 7h1.4M11.6 7H13M2.93 2.93l1 1M10.07 10.07l1 1M10.07 3.93l-1 1M3.93 10.07l-1 1"/>
+    </svg>
+  </button>
+  <button class="addbtn" id="btnNew">
+    <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 1v9M1 5.5h9"/></svg>
+    Nueva cita
+  </button>
+  <button class="logoutbtn" id="btnLogout" title="Cerrar sesión">↩ Salir</button>
+</header>
+
+<main class="main" id="main">
+  <div class="loading"><div class="spinner"></div><span>Cargando…</span></div>
+</main>
+
+<!-- MODAL CITA -->
+<div class="overlay" id="aptOverlay">
+  <div class="modal">
+    <div id="fView">
+      <div class="mhd2">
+        <span class="mtitle" id="mtitle">Nueva cita</span>
+        <button class="mxbtn" id="mclose">✕</button>
+      </div>
+      <div class="mform">
+        <div class="frow"><label for="fPat">Paciente</label><input type="text" id="fPat" placeholder="Nombre completo" autocomplete="off"></div>
+        <div class="frow2">
+          <div><label for="fPhone">Teléfono</label><input type="tel" id="fPhone" placeholder="600 000 000"></div>
+          <div><label for="fDate">Fecha</label><input type="date" id="fDate"></div>
+        </div>
+        <div class="frow2">
+          <div><label for="fStart">Hora inicio</label><input type="time" id="fStart" min="07:00" max="22:00" step="300"></div>
+          <div><label for="fEnd">Hora fin</label><input type="time" id="fEnd" min="07:00" max="22:00" step="300"></div>
+        </div>
+        <div class="frow">
+          <label>Duración rápida</label>
+          <div class="qdurs" id="qdurs">
+            <button class="qdur" data-d="15">15 min</button>
+            <button class="qdur" data-d="30">30 min</button>
+            <button class="qdur" data-d="60">60 min</button>
+          </div>
+        </div>
+        <div class="frow" id="svcRow"><label for="fSvc">Servicio</label><select id="fSvc"></select></div>
+        <div class="frow"><label>Fisioterapeuta</label><div class="phbtns" id="phBtns"></div></div>
+        <div class="frow"><label for="fNotes">Notas</label><textarea id="fNotes" placeholder="Diagnóstico, zona de tratamiento, observaciones..."></textarea></div>
+        <div class="rwrap" id="rWrap">
+          <div class="rhead">Repetición</div>
+          <div class="rpills" id="rPills">
+            <button class="rpill on" data-r="none">Sin repetición</button>
+            <button class="rpill" data-r="weekly">Semanal</button>
+            <button class="rpill" data-r="biweekly">Quincenal</button>
+            <button class="rpill" data-r="monthly">Mensual</button>
+          </div>
+          <div class="rend" id="rEnd"><label for="fREnd">Fecha fin de serie</label><input type="date" id="fREnd"></div>
+        </div>
+      </div>
+      <div class="mfoot">
+        <button class="bdel" id="btnDel" style="display:none">Eliminar</button>
+        <button class="bcancel" id="btnCancel">Cancelar</button>
+        <button class="bsave" id="btnSave">Guardar cita</button>
+      </div>
+    </div>
+    <div class="dconfirm" id="dView">
+      <p>Esta cita pertenece a una serie recurrente.<br>¿Qué deseas eliminar?</p>
+      <div class="dopts">
+        <button class="dopt" id="dThis">Eliminar solo esta cita</button>
+        <button class="dopt danger" id="dAll">Eliminar toda la serie</button>
+        <button class="dopt" id="dBack">← Volver sin eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN -->
+<div class="overlay" id="cfgOverlay">
+  <div class="modal smodal">
+    <div class="mhd2">
+      <span class="mtitle">⚙️ Configuración</span>
+      <button class="mxbtn" id="cfgClose">✕</button>
+    </div>
+    <div class="stabs">
+      <button class="stab on" data-tab="physios">Fisioterapeutas</button>
+      <button class="stab" data-tab="services">Servicios</button>
+    </div>
+    <div class="stabpane show" id="panePhysios">
+      <div class="slist" id="physioList"></div>
+      <div class="sadd">
+        <div class="sadd-title">Añadir fisioterapeuta</div>
+        <input type="text" id="newPhysioName" placeholder="Nombre">
+        <div class="palette" id="physPalette"></div>
+        <button class="sbtn" id="addPhysioBtn">Añadir fisioterapeuta</button>
+      </div>
+    </div>
+    <div class="stabpane" id="paneServices">
+      <div class="slist" id="svcList"></div>
+      <div class="sadd">
+        <div class="sadd-title">Añadir servicio</div>
+        <input type="text" id="newSvcName" placeholder="Nombre del servicio">
+        <div class="dur-opts" id="svcDurOpts">
+          <button class="dur-opt on" data-d="15">15 min</button>
+          <button class="dur-opt" data-d="30">30 min</button>
+          <button class="dur-opt" data-d="60">60 min</button>
+        </div>
+        <button class="sbtn" id="addSvcBtn">Añadir servicio</button>
+      </div>
+    </div>
+    <div class="sdivider"></div>
+    <div class="sfooter"><button class="bsave" id="cfgDone">Listo</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ══════════════════════════════════════════════════════════════════
+//  FISIO TERREROS — CALENDARIO  v4.0
+//  Seguridad: Firebase Authentication (email/contraseña)
+//  Base de datos: Firestore (solo usuarios autenticados)
+// ══════════════════════════════════════════════════════════════════
+
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js';
+import { getFirestore, initializeFirestore, persistentLocalCache,
+         collection, doc, onSnapshot, setDoc, deleteDoc }
+  from 'https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js';
+
+// ── FIREBASE CONFIG ──────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDq5KZVgcfDmFyDLR_H2zHneo-tKpMlSEA",
+  authDomain:        "fisioterreros-c2e1e.firebaseapp.com",
+  projectId:         "fisioterreros-c2e1e",
+  storageBucket:     "fisioterreros-c2e1e.firebasestorage.app",
+  messagingSenderId: "893670957664",
+  appId:             "1:893670957664:web:c2888904f60bac49f11905"
+};
+
+// ── CONSTANTES ───────────────────────────────────────────────────
+const DAYS   = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const H0=7, H1=22, HSPAN=15, TOTPX=900;
+const COLORS = ['#5C7A4E','#3B6EA5','#8B5E83','#C4784A','#4A7F8B','#7A6B4E','#8B3A3A','#4A5E8B','#6B8B3A','#A0623D'];
+const DEFAULT_CFG = {
+  physios:[
+    {name:'Carlos',  main:'#5C7A4E', bg:'#E2EDD9', light:'#F0F5EC'},
+    {name:'Antonio', main:'#3B6EA5', bg:'#D9E8F5', light:'#EDF4FB'},
+  ],
+  services:[
+    {name:'Fisioterapia general', duration:60},
+    {name:'Masaje terapéutico',   duration:30},
+    {name:'Punción seca',         duration:15},
+    {name:'Osteopatía',           duration:60},
+    {name:'Valoración inicial',   duration:60},
+  ]
+};
+
+// ── ESTADO ───────────────────────────────────────────────────────
+const S = { view:'month', date:new Date(), filter:'all', apts:[], editId:null, physio:null, recur:'none', ready:false };
+let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+let db, auth;
+let pickColor = COLORS[0];
+let pickSvcDur = 15;
+let fsListenersOn = false;
+
+// ── FIREBASE INIT ────────────────────────────────────────────────
+const app = initializeApp(FIREBASE_CONFIG);
+auth = getAuth(app);
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    initFirestore();
+  } else {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('main').innerHTML =
+      '<div class="loading"><div class="spinner"></div><span>Cargando…</span></div>';
+    S.ready = false;
+    fsListenersOn = false;
+  }
+});
+
+function initFirestore() {
+  if (fsListenersOn) return;
+  fsListenersOn = true;
+  try {
+    db = initializeFirestore(app, { localCache: persistentLocalCache() });
+  } catch {
+    db = getFirestore(app);
+  }
+  setupListeners();
+}
+
+function setupListeners() {
+  onSnapshot(collection(db, 'citas'),
+    snap => {
+      S.apts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (!S.ready) { S.ready = true; setStatus('online'); }
+      render();
+    },
+    err => { console.error(err); setStatus('error'); }
+  );
+  onSnapshot(doc(db, 'config', 'clinic'),
+    snap => {
+      if (snap.exists()) {
+        CFG = snap.data();
+        if (!CFG.physios)  CFG.physios  = DEFAULT_CFG.physios;
+        if (!CFG.services) CFG.services = DEFAULT_CFG.services;
+      } else {
+        CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
+        setDoc(doc(db, 'config', 'clinic'), CFG);
+      }
+      if (S.ready) render();
+    },
+    err => console.error(err)
+  );
+}
+
+// ── AUTH FUNCTIONS ───────────────────────────────────────────────
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if (!email || !pass) { showLoginErr('Introduce correo y contraseña.'); return; }
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(err) {
+    const msgs = {
+      'auth/invalid-email':       'Correo no válido.',
+      'auth/user-not-found':      'Usuario no encontrado.',
+      'auth/wrong-password':      'Contraseña incorrecta.',
+      'auth/invalid-credential':  'Correo o contraseña incorrectos.',
+      'auth/too-many-requests':   'Demasiados intentos. Espera un momento.',
+    };
+    showLoginErr(msgs[err.code] || 'Error al iniciar sesión. Inténtalo de nuevo.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar →';
+  }
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function handleLogout() {
+  if (confirm('¿Cerrar sesión?')) await signOut(auth);
+}
+
+// ── FIRESTORE OPS ────────────────────────────────────────────────
+function writeApt(apt)  { return setDoc(doc(db, 'citas', apt.id), apt); }
+function eraseApt(id)   { return deleteDoc(doc(db, 'citas', id)); }
+function writeCfg()     { return setDoc(doc(db, 'config', 'clinic'), CFG); }
+
+// ── ESTADO CONEXIÓN ──────────────────────────────────────────────
+function setStatus(st) {
+  const dot = document.getElementById('statusDot');
+  const map = { online:['#5C7A4E','Sincronizado ✓'], error:['#C0413A','Error de conexión'], connecting:['#C4784A','Conectando...'] };
+  const [color, tip] = map[st] || map.connecting;
+  dot.style.background = color; dot.title = tip;
+}
+
+// ── UTILIDADES ───────────────────────────────────────────────────
+function ds(d)   { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function pd(s)   { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function isToday(s) { return s===ds(new Date()); }
+function monday(d)  { const r=new Date(d),dw=r.getDay(); r.setDate(r.getDate()-(dw===0?6:dw-1)); return r; }
+function mins(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
+function fmins(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function lighten(hex,f){ const n=parseInt(hex.replace('#',''),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  return '#'+[r,g,b].map(v=>Math.round(v+(255-v)*f).toString(16).padStart(2,'0')).join(''); }
+function getPhysio(name){ return CFG.physios.find(p=>p.name===name)||{name,main:'#999',bg:'#eee',light:'#f5f5f5'}; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function filtered(){ return S.filter==='all'?S.apts:S.apts.filter(a=>a.physiotherapist===S.filter); }
+function forDate(date){ return filtered().filter(a=>a.date===date); }
+
+function layout(apts){
+  const sorted=[...apts].sort((a,b)=>mins(a.startTime)-mins(b.startTime));
+  const cols=[];
+  sorted.forEach(apt=>{
+    let placed=false;
+    for(const col of cols){ if(mins(col[col.length-1].endTime)<=mins(apt.startTime)){col.push(apt);placed=true;break;} }
+    if(!placed) cols.push([apt]);
+  });
+  const out={},n=cols.length;
+  cols.forEach((col,ci)=>col.forEach(a=>{out[a.id]={ci,n};}));
+  return out;
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render() { renderFilterPills(); setPeriod(); S.view==='month'?renderMonth():renderWeek(); }
+
+function renderFilterPills(){
+  const wrap=document.getElementById('pillsWrap');
+  const opts=[{label:'Todos',filter:'all'},...CFG.physios.map(p=>({label:p.name,filter:p.name,main:p.main}))];
+  wrap.innerHTML=opts.map(f=>`<button class="fpill${S.filter===f.filter?' on':''}" data-f="${f.filter}">${f.label}</button>`).join('');
+  wrap.querySelectorAll('.fpill.on').forEach(pill=>{
+    const p=CFG.physios.find(x=>x.name===pill.dataset.f);
+    pill.style.cssText=p?`background:${p.main};color:#fff;border-color:${p.main}`:`background:var(--text);color:#fff;border-color:var(--text)`;
+  });
+  wrap.onclick=e=>{ const pill=e.target.closest('.fpill'); if(!pill) return; S.filter=pill.dataset.f; render(); };
+}
+
+function setPeriod(){
+  const el=document.getElementById('period');
+  if(S.view==='month'){ el.textContent=MONTHS[S.date.getMonth()]+' '+S.date.getFullYear(); }
+  else {
+    const mon=monday(S.date),sun=new Date(mon); sun.setDate(sun.getDate()+6);
+    el.textContent=mon.getMonth()===sun.getMonth()
+      ? mon.getDate()+'–'+sun.getDate()+' '+MONTHS[mon.getMonth()]+' '+sun.getFullYear()
+      : mon.getDate()+' '+MONTHS[mon.getMonth()].slice(0,3)+' – '+sun.getDate()+' '+MONTHS[sun.getMonth()].slice(0,3)+' '+sun.getFullYear();
+  }
+}
+
+function renderMonth(){
+  const yr=S.date.getFullYear(),mo=S.date.getMonth();
+  const first=new Date(yr,mo,1),last=new Date(yr,mo+1,0);
+  let sdow=first.getDay(); sdow=sdow===0?6:sdow-1;
+  const days=[];
+  for(let i=sdow-1;i>=0;i--) days.push({d:new Date(yr,mo,-i),cur:false});
+  for(let i=1;i<=last.getDate();i++) days.push({d:new Date(yr,mo,i),cur:true});
+  while(days.length%7) days.push({d:new Date(yr,mo+1,days.length-last.getDate()-sdow+1),cur:false});
+  const head=DAYS.map(d=>`<div class="mhd">${d}</div>`).join('');
+  const body=days.map(({d,cur})=>{
+    const date=ds(d),apts=forDate(date),show=apts.slice(0,3),more=apts.length-3;
+    const dw=d.getDay(),wkend=cur&&(dw===0||dw===6)?' wkend':'';
+    const chips=show.map(a=>{
+      const p=getPhysio(a.physiotherapist);
+      return `<div class="chip" data-id="${a.id}" style="background:${p.bg};color:${p.main}"
+        title="${a.patientName} · ${a.startTime}–${a.endTime}${a.service?'\n'+a.service:''}${a.notes?'\n'+a.notes:''}">
+        ${a.startTime} ${a.patientName}</div>`;
+    }).join('');
+    return `<div class="mday${cur?'':' other'}${isToday(date)?' today':''}${wkend}" data-date="${date}">
+      <div class="mnum">${d.getDate()}</div>${chips}${more>0?`<div class="more">+${more} más</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('main').innerHTML=`<div class="mwrap"><div class="mhdr">${head}</div><div class="mbody" id="mbody">${body}</div></div>`;
+  document.getElementById('mbody').onclick=e=>{
+    const chip=e.target.closest('.chip');
+    if(chip){e.stopPropagation();openModal(null,null,chip.dataset.id);return;}
+    const day=e.target.closest('.mday'); if(day) openModal(day.dataset.date);
+  };
+}
+
+function renderWeek(){
+  const mon=monday(S.date);
+  const wdays=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  const hdrHtml=wdays.map(d=>{
+    const today=isToday(ds(d)),dw=d.getDay(),di=dw===0?6:dw-1;
+    return `<div class="whdr-day${today?' today':''}"><div class="wdn">${DAYS[di]}</div><div class="wdd">${d.getDate()}</div></div>`;
+  }).join('');
+  const tlabels=Array.from({length:HSPAN+1},(_,i)=>`<div class="tlabel" style="top:${i*60}px">${String(i+H0).padStart(2,'0')}:00</div>`).join('');
+  const colsHtml=wdays.map(d=>{
+    const date=ds(d),apts=forDate(date),lay=layout(apts);
+    const hlines=Array.from({length:HSPAN+1},(_,i)=>`<div class="hline" style="top:${i*60}px"></div>`).join('');
+    const halflines=Array.from({length:HSPAN},(_,i)=>`<div class="hline-half" style="top:${i*60+30}px"></div>`).join('');
+    const aptsHtml=apts.map(apt=>{
+      const {ci,n}=lay[apt.id],p=getPhysio(apt.physiotherapist);
+      const top=mins(apt.startTime)-H0*60,h=Math.max(mins(apt.endTime)-mins(apt.startTime),18);
+      const w=`calc(${100/n}% - 4px)`,l=`calc(${ci*100/n}% + 2px)`;
+      return `<div class="wapt" data-id="${apt.id}" style="top:${top}px;height:${h}px;width:${w};left:${l};background:${p.main}"
+        title="${apt.patientName}${apt.service?' · '+apt.service:''}\n${apt.startTime}–${apt.endTime}${apt.notes?'\n'+apt.notes:''}">
+        <div class="wapt-name">${apt.patientName}</div>
+        ${h>=28?`<div class="wapt-time">${apt.startTime}–${apt.endTime}</div>`:''}
+        ${h>=44&&apt.service?`<div class="wapt-svc">${apt.service}</div>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="wcol" data-date="${date}">${hlines}${halflines}${aptsHtml}</div>`;
+  }).join('');
+  document.getElementById('main').innerHTML=`<div class="wwrap">
+    <div class="whdr"><div class="whdr-time"></div>${hdrHtml}</div>
+    <div class="wbody" id="wbody"><div class="tcol">${tlabels}</div><div class="wgrid" id="wgrid">${colsHtml}</div></div>
+  </div>`;
+  document.getElementById('wbody').scrollTop=60;
+  document.getElementById('wgrid').onclick=e=>{
+    const apt=e.target.closest('.wapt'); if(apt){openModal(null,null,apt.dataset.id);return;}
+    const col=e.target.closest('.wcol'); if(!col) return;
+    const rect=col.getBoundingClientRect();
+    const y=Math.max(0,Math.min(TOTPX-1,e.clientY-rect.top));
+    openModal(col.dataset.date,fmins(H0*60+Math.round(y/30)*30));
+  };
+}
+
+// ── MODAL CITA ───────────────────────────────────────────────────
+function openModal(date,time,editId=null){
+  S.editId=editId; S.physio=null; S.recur='none';
+  showForm(); resetForm(date,time); renderPhysioBtns(); renderSvcSelect();
+  if(editId){
+    document.getElementById('mtitle').textContent='Editar cita';
+    document.getElementById('btnDel').style.display='block';
+    document.getElementById('rWrap').style.display='none';
+    const apt=S.apts.find(a=>a.id===editId);
+    if(apt){
+      document.getElementById('fPat').value  =apt.patientName||'';
+      document.getElementById('fPhone').value=apt.phone||'';
+      document.getElementById('fDate').value =apt.date;
+      document.getElementById('fStart').value=apt.startTime;
+      document.getElementById('fEnd').value  =apt.endTime;
+      document.getElementById('fNotes').value=apt.notes||'';
+      document.getElementById('fSvc').value  =apt.service||'';
+      selPhysio(apt.physiotherapist); updateDurHL();
+    }
+  } else {
+    document.getElementById('mtitle').textContent='Nueva cita';
+    document.getElementById('btnDel').style.display='none';
+    document.getElementById('rWrap').style.display='';
+  }
+  document.getElementById('aptOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('fPat').focus(),190);
+}
+
+function resetForm(date,time){
+  document.getElementById('fPat').value  ='';
+  document.getElementById('fPhone').value='';
+  document.getElementById('fDate').value =date||ds(new Date());
+  document.getElementById('fStart').value=time||'10:00';
+  document.getElementById('fEnd').value  =time?fmins(Math.min(mins(time)+60,H1*60)):'11:00';
+  document.getElementById('fNotes').value='';
+  document.getElementById('fREnd').value ='';
+  document.getElementById('fSvc').value  ='';
+  document.querySelectorAll('.rpill').forEach(b=>b.classList.toggle('on',b.dataset.r==='none'));
+  document.getElementById('rEnd').classList.remove('show');
+  updateDurHL();
+}
+
+function renderPhysioBtns(){
+  const wrap=document.getElementById('phBtns');
+  if(!CFG.physios.length){wrap.innerHTML=`<div style="color:var(--txt3);font-size:13px">Añade fisioterapeutas en ⚙️.</div>`;return;}
+  wrap.style.gridTemplateColumns=`repeat(${Math.min(CFG.physios.length,3)},1fr)`;
+  wrap.innerHTML=CFG.physios.map(p=>`<button class="phbtn" data-p="${p.name}">${p.name}</button>`).join('');
+  wrap.querySelectorAll('.phbtn').forEach(b=>b.onclick=()=>selPhysio(b.dataset.p));
+  if(S.physio) selPhysio(S.physio);
+}
+
+function selPhysio(name){
+  S.physio=name;
+  document.querySelectorAll('.phbtn').forEach(b=>{
+    const p=getPhysio(b.dataset.p),on=b.dataset.p===name;
+    b.style.cssText=on?`border-color:${p.main};background:${p.light};color:${p.main}`:'';
+  });
+}
+
+function renderSvcSelect(){
+  const sel=document.getElementById('fSvc');
+  sel.innerHTML=`<option value="">— Sin servicio —</option>`+
+    CFG.services.map(s=>`<option value="${s.name}">${s.name} (${s.duration} min)</option>`).join('');
+  document.getElementById('svcRow').style.display=CFG.services.length?'':'none';
+}
+
+function updateDurHL(){
+  const s=document.getElementById('fStart').value,e=document.getElementById('fEnd').value;
+  const dur=(s&&e)?mins(e)-mins(s):-1;
+  document.querySelectorAll('.qdur').forEach(b=>b.classList.toggle('on',+b.dataset.d===dur));
+}
+
+function showForm(){ document.getElementById('fView').style.display=''; document.getElementById('dView').classList.remove('show'); }
+function closeModal(){ document.getElementById('aptOverlay').classList.remove('open'); S.editId=null; }
+
+async function submitApt(){
+  const pat  =document.getElementById('fPat').value.trim();
+  const date =document.getElementById('fDate').value;
+  const start=document.getElementById('fStart').value;
+  const end  =document.getElementById('fEnd').value;
+  if(!pat)       {toast('Indica el nombre del paciente');return;}
+  if(!date)      {toast('Selecciona una fecha');return;}
+  if(!start||!end){toast('Indica hora de inicio y fin');return;}
+  if(start>=end) {toast('La hora fin debe ser posterior al inicio');return;}
+  if(!S.physio)  {toast('Selecciona un fisioterapeuta');return;}
+  const data={
+    patientName:pat, phone:document.getElementById('fPhone').value.trim(),
+    date, startTime:start, endTime:end,
+    physiotherapist:S.physio, service:document.getElementById('fSvc').value,
+    notes:document.getElementById('fNotes').value.trim(),
+  };
+  closeModal();
+  if(S.editId){
+    const existing=S.apts.find(a=>a.id===S.editId);
+    await writeApt({...existing,...data}); toast('Cita actualizada ✓');
+  } else if(S.recur==='none'){
+    await writeApt({id:uid(),...data,recurringGroupId:null,recurringType:null}); toast('Cita guardada ✓');
+  } else {
+    const rend=document.getElementById('fREnd').value;
+    if(!rend){toast('Indica la fecha fin de la serie');return;}
+    const gid=uid(),all=genRecurring(data,S.recur,rend,gid);
+    await Promise.all(all.map(a=>writeApt(a))); toast(`${all.length} citas creadas ✓`);
+  }
+}
+
+function genRecurring(base,type,endStr,gid){
+  const out=[],endD=pd(endStr); let cur=pd(base.date);
+  while(cur<=endD){
+    out.push({id:uid(),...base,date:ds(cur),recurringGroupId:gid,recurringType:type});
+    const nx=new Date(cur);
+    if(type==='weekly')   nx.setDate(nx.getDate()+7);
+    if(type==='biweekly') nx.setDate(nx.getDate()+14);
+    if(type==='monthly')  nx.setMonth(nx.getMonth()+1);
+    cur=nx;
+  }
+  return out;
+}
+
+async function handleDel(){
+  const apt=S.apts.find(a=>a.id===S.editId); if(!apt) return;
+  if(apt.recurringGroupId){ document.getElementById('fView').style.display='none'; document.getElementById('dView').classList.add('show'); }
+  else { closeModal(); await eraseApt(S.editId); toast('Cita eliminada'); }
+}
+
+// ── CONFIGURACIÓN ────────────────────────────────────────────────
+function openSettings(){ renderSettingsPhysios(); renderSettingsServices(); renderPalette(); document.getElementById('cfgOverlay').classList.add('open'); }
+function closeSettings(){ document.getElementById('cfgOverlay').classList.remove('open'); }
+
+function renderSettingsPhysios(){
+  const list=document.getElementById('physioList');
+  if(!CFG.physios.length){list.innerHTML=`<div class="sempty">No hay fisioterapeutas.</div>`;return;}
+  list.innerHTML=CFG.physios.map((p,i)=>
+    `<div class="sitem"><div class="sitem-dot" style="background:${p.main}"></div>
+     <div class="sitem-name">${p.name}</div><button class="sitem-del" data-i="${i}">×</button></div>`).join('');
+  list.querySelectorAll('.sitem-del').forEach(b=>b.onclick=()=>{
+    if(confirm(`¿Eliminar a ${CFG.physios[+b.dataset.i].name}?`)){ CFG.physios.splice(+b.dataset.i,1); writeCfg(); renderSettingsPhysios(); }
+  });
+}
+
+function renderSettingsServices(){
+  const list=document.getElementById('svcList');
+  if(!CFG.services.length){list.innerHTML=`<div class="sempty">No hay servicios.</div>`;return;}
+  list.innerHTML=CFG.services.map((s,i)=>
+    `<div class="sitem"><div class="sitem-name">${s.name}</div>
+     <div class="sitem-badge">${s.duration} min</div><button class="sitem-del" data-i="${i}">×</button></div>`).join('');
+  list.querySelectorAll('.sitem-del').forEach(b=>b.onclick=()=>{ CFG.services.splice(+b.dataset.i,1); writeCfg(); renderSettingsServices(); });
+}
+
+function renderPalette(){
+  document.getElementById('physPalette').innerHTML=COLORS.map(c=>
+    `<button class="cpick${c===pickColor?' on':''}" data-c="${c}" style="background:${c}"></button>`).join('');
+}
+
+function addPhysio(){
+  const name=document.getElementById('newPhysioName').value.trim();
+  if(!name){toast('Indica un nombre');return;}
+  if(CFG.physios.find(p=>p.name===name)){toast('Ya existe ese nombre');return;}
+  CFG.physios.push({name,main:pickColor,bg:lighten(pickColor,0.72),light:lighten(pickColor,0.88)});
+  document.getElementById('newPhysioName').value='';
+  writeCfg(); renderSettingsPhysios(); toast(`${name} añadido ✓`);
+}
+
+function addService(){
+  const name=document.getElementById('newSvcName').value.trim();
+  if(!name){toast('Indica el nombre del servicio');return;}
+  CFG.services.push({name,duration:pickSvcDur});
+  document.getElementById('newSvcName').value='';
+  writeCfg(); renderSettingsServices(); toast('Servicio añadido ✓');
+}
+
+// ── TOAST ────────────────────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── EVENTOS ──────────────────────────────────────────────────────
+document.getElementById('loginBtn').onclick = handleLogin;
+document.getElementById('loginPass').onkeydown = e=>{ if(e.key==='Enter') handleLogin(); };
+document.getElementById('loginEmail').onkeydown = e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); };
+document.getElementById('btnLogout').onclick = handleLogout;
+
+document.getElementById('btnPrev').onclick=()=>{ S.view==='month'?S.date.setMonth(S.date.getMonth()-1):S.date.setDate(S.date.getDate()-7); render(); };
+document.getElementById('btnNext').onclick=()=>{ S.view==='month'?S.date.setMonth(S.date.getMonth()+1):S.date.setDate(S.date.getDate()+7); render(); };
+document.getElementById('btnToday').onclick=()=>{ S.date=new Date(); render(); };
+document.getElementById('btnNew').onclick=()=>openModal();
+document.getElementById('btnCfg').onclick=openSettings;
+document.getElementById('mclose').onclick=closeModal;
+document.getElementById('btnCancel').onclick=closeModal;
+document.getElementById('btnSave').onclick=submitApt;
+document.getElementById('btnDel').onclick=handleDel;
+document.getElementById('dThis').onclick=async()=>{ closeModal(); await eraseApt(S.editId); toast('Cita eliminada'); };
+document.getElementById('dAll').onclick=async()=>{
+  const gid=S.apts.find(a=>a.id===S.editId)?.recurringGroupId; closeModal();
+  if(gid){ await Promise.all(S.apts.filter(a=>a.recurringGroupId===gid).map(a=>eraseApt(a.id))); toast('Serie eliminada'); }
+};
+document.getElementById('dBack').onclick=showForm;
+document.getElementById('aptOverlay').onclick=e=>{ if(e.target===e.currentTarget) closeModal(); };
+document.getElementById('qdurs').onclick=e=>{
+  const btn=e.target.closest('.qdur'); if(!btn) return;
+  const s=document.getElementById('fStart').value;
+  if(s){ document.getElementById('fEnd').value=fmins(Math.min(mins(s)+(+btn.dataset.d),H1*60)); updateDurHL(); }
+};
+document.getElementById('fSvc').onchange=function(){
+  const svc=CFG.services.find(s=>s.name===this.value),s=document.getElementById('fStart').value;
+  if(svc&&s){ document.getElementById('fEnd').value=fmins(Math.min(mins(s)+svc.duration,H1*60)); updateDurHL(); }
+};
+document.getElementById('fStart').onchange=function(){
+  const s=this.value,e=document.getElementById('fEnd').value;
+  if(s&&(!e||e<=s)) document.getElementById('fEnd').value=fmins(Math.min(mins(s)+60,H1*60));
+  updateDurHL();
+};
+document.getElementById('fEnd').onchange=updateDurHL;
+document.getElementById('rPills').onclick=e=>{
+  const btn=e.target.closest('.rpill'); if(!btn) return;
+  S.recur=btn.dataset.r;
+  document.querySelectorAll('.rpill').forEach(b=>b.classList.toggle('on',b===btn));
+  document.getElementById('rEnd').classList.toggle('show',S.recur!=='none');
+};
+document.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>{ S.view=b.dataset.v; document.querySelectorAll('.vbtn').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+document.getElementById('cfgClose').onclick=closeSettings;
+document.getElementById('cfgDone').onclick=closeSettings;
+document.getElementById('cfgOverlay').onclick=e=>{ if(e.target===e.currentTarget) closeSettings(); };
+document.querySelectorAll('.stab').forEach(b=>b.onclick=()=>{
+  const tab=b.dataset.tab;
+  document.querySelectorAll('.stab').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('panePhysios').classList.toggle('show',tab==='physios');
+  document.getElementById('paneServices').classList.toggle('show',tab==='services');
+});
+document.getElementById('physPalette').onclick=e=>{ const btn=e.target.closest('.cpick'); if(!btn) return; pickColor=btn.dataset.c; renderPalette(); };
+document.getElementById('svcDurOpts').onclick=e=>{ const btn=e.target.closest('.dur-opt'); if(!btn) return; pickSvcDur=+btn.dataset.d; document.querySelectorAll('.dur-opt').forEach(b=>b.classList.toggle('on',b===btn)); };
+document.getElementById('addPhysioBtn').onclick=addPhysio;
+document.getElementById('addSvcBtn').onclick=addService;
+document.getElementById('newPhysioName').onkeydown=e=>{ if(e.key==='Enter') addPhysio(); };
+document.getElementById('newSvcName').onkeydown=e=>{ if(e.key==='Enter') addService(); };
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('cfgOverlay').classList.contains('open')) closeSettings();
+    else closeModal();
+  }
+});
+
+window.addEventListener('online',  ()=>setStatus('online'));
+window.addEventListener('offline', ()=>setStatus('error'));
+</script>
+</body>
+</html>
