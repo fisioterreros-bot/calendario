@@ -105,7 +105,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--text);min-height:100
 .more{font:500 10px/1 var(--fn);color:var(--txt3);padding:2px 3px}
 
 /* ── WEEK ── */
-.wwrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shd)}
+.wwrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:clip;box-shadow:var(--shd)}
 .whdr{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:2px solid var(--border);
   background:var(--srf2);position:sticky;top:56px;z-index:20}
 .whdr-time{}
@@ -224,6 +224,38 @@ select{cursor:pointer}
 .sdivider{height:1px;background:var(--border)}
 .sfooter{display:flex;justify-content:flex-end;padding:13px 22px}
 
+
+.price-wrap{position:relative}
+.price-wrap input{padding-right:26px}
+.price-euro{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:14px;pointer-events:none}
+.pay-btns{display:flex;gap:5px}
+.pay-btn{flex:1;padding:7px 4px;border:1.5px solid var(--border);border-radius:7px;
+  font:500 11px/1.2 var(--fn);cursor:pointer;background:transparent;color:var(--txt2);
+  transition:all .12s;text-align:center}
+.pay-btn.on{border-color:var(--antonio);background:var(--antbg);color:var(--antonio)}
+.total-row{display:flex;align-items:center;justify-content:space-between;
+  background:var(--srf2);border-radius:8px;padding:10px 14px;margin-bottom:13px;
+  border:1px solid var(--border)}
+.total-label{font:600 11px/1 var(--fn);color:var(--txt2);text-transform:uppercase;letter-spacing:.04em}
+.total-value{font:700 16px/1 var(--fn);color:var(--antonio)}
+.total-detail{font:400 11px/1 var(--fn);color:var(--txt3);margin-left:6px}
+
+
+.wknd-btn{height:30px;padding:0 10px;border:1px solid var(--border);background:var(--surface);
+  border-radius:7px;cursor:pointer;font:500 12px/1 var(--fn);color:var(--txt3);transition:all .12s;flex-shrink:0}
+.wknd-btn.on{background:var(--srf2);color:var(--txt2);border-color:var(--brd2)}
+.day-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:clip;box-shadow:var(--shd)}
+.day-head{display:grid;grid-template-columns:52px 1fr;border-bottom:2px solid var(--border);
+  background:var(--srf2);position:sticky;top:56px;z-index:20}
+.day-head-date{border-left:1px solid var(--border);padding:14px 20px;text-align:center}
+.day-date-name{font:700 13px/1 var(--fn);letter-spacing:.04em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px}
+.day-date-num{font:800 28px/1 var(--fn);color:var(--txt2)}
+.day-head-date.today .day-date-num{color:var(--accent)}
+.day-body{display:flex;overflow-y:auto;max-height:calc(100vh - 164px)}
+.day-body::-webkit-scrollbar{width:5px}
+.day-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.day-col{border-left:1px solid var(--border);position:relative;height:900px;cursor:pointer;flex:1}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;
   padding:9px 15px;border-radius:8px;font:500 13px/1 var(--fn);box-shadow:var(--shd-m);
@@ -284,9 +316,11 @@ select{cursor:pointer}
   <div id="pillsWrap"></div>
   <div class="hsep"></div>
   <div class="vtoggle">
+    <button class="vbtn" data-v="day">Día</button>
     <button class="vbtn on" data-v="month">Mes</button>
     <button class="vbtn" data-v="week">Semana</button>
   </div>
+  <button class="wknd-btn on" id="btnWknd" title="Mostrar/ocultar fin de semana">S/D</button>
   <div class="hsep"></div>
   <button class="cfgbtn" id="btnCfg" title="Configuración">
     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -333,6 +367,27 @@ select{cursor:pointer}
         </div>
         <div class="frow" id="svcRow"><label for="fSvc">Servicio</label><select id="fSvc"></select></div>
         <div class="frow"><label>Fisioterapeuta</label><div class="phbtns" id="phBtns"></div></div>
+        <div class="frow2">
+          <div>
+            <label for="fPrice">Precio sesión</label>
+            <div class="price-wrap">
+              <input type="number" id="fPrice" placeholder="0" min="0" step="0.50">
+              <span class="price-euro">€</span>
+            </div>
+          </div>
+          <div>
+            <label>Forma de pago</label>
+            <div class="pay-btns" id="payBtns">
+              <button class="pay-btn" data-pay="efectivo">Efectivo</button>
+              <button class="pay-btn" data-pay="tarjeta">Tarjeta</button>
+              <button class="pay-btn" data-pay="transferencia">Transfer.</button>
+            </div>
+          </div>
+        </div>
+        <div class="total-row" id="totalRow" style="display:none">
+          <span class="total-label">Total acumulado</span>
+          <span><span class="total-value" id="totalValue">0 €</span><span class="total-detail" id="totalDetail"></span></span>
+        </div>
         <div class="frow"><label for="fNotes">Notas</label><textarea id="fNotes" placeholder="Diagnóstico, zona de tratamiento, observaciones..."></textarea></div>
         <div class="rwrap" id="rWrap">
           <div class="rhead">Repetición</div>
@@ -448,11 +503,12 @@ const DEFAULT_CFG = {
 };
 
 // ── ESTADO ───────────────────────────────────────────────────────
-const S = { view:'month', date:new Date(), filter:'all', apts:[], editId:null, physio:null, recur:'none', ready:false };
+const S = { view:'month', date:new Date(), filter:'all', apts:[], editId:null, physio:null, recur:'none', ready:false, showWeekend:true };
 let CFG = JSON.parse(JSON.stringify(DEFAULT_CFG));
 let db, auth;
 let pickColor = COLORS[0];
 let pickSvcDur = 15;
+let payMethod = null;
 let fsListenersOn = false;
 
 // ── FIREBASE INIT ────────────────────────────────────────────────
@@ -583,7 +639,7 @@ function layout(apts){
 }
 
 // ── RENDER ───────────────────────────────────────────────────────
-function render() { renderFilterPills(); setPeriod(); S.view==='month'?renderMonth():renderWeek(); }
+function render() { renderFilterPills(); setPeriod(); if(S.view==='month') renderMonth(); else if(S.view==='week') renderWeek(); else renderDay(); }
 
 function renderFilterPills(){
   const wrap=document.getElementById('pillsWrap');
@@ -599,7 +655,10 @@ function renderFilterPills(){
 function setPeriod(){
   const el=document.getElementById('period');
   if(S.view==='month'){ el.textContent=MONTHS[S.date.getMonth()]+' '+S.date.getFullYear(); }
-  else {
+  else if(S.view==='day'){
+    const dw=S.date.getDay(),di=dw===0?6:dw-1;
+    el.textContent=DAYS[di]+' '+S.date.getDate()+' '+MONTHS[S.date.getMonth()]+' '+S.date.getFullYear();
+  } else {
     const mon=monday(S.date),sun=new Date(mon); sun.setDate(sun.getDate()+6);
     el.textContent=mon.getMonth()===sun.getMonth()
       ? mon.getDate()+'–'+sun.getDate()+' '+MONTHS[mon.getMonth()]+' '+sun.getFullYear()
@@ -639,12 +698,14 @@ function renderMonth(){
 
 function renderWeek(){
   const mon=monday(S.date);
-  const wdays=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  const allDays=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  const wdays=S.showWeekend?allDays:allDays.slice(0,5);
   const hdrHtml=wdays.map(d=>{
     const today=isToday(ds(d)),dw=d.getDay(),di=dw===0?6:dw-1;
     return `<div class="whdr-day${today?' today':''}"><div class="wdn">${DAYS[di]}</div><div class="wdd">${d.getDate()}</div></div>`;
   }).join('');
   const tlabels=Array.from({length:HSPAN+1},(_,i)=>`<div class="tlabel" style="top:${i*60}px">${String(i+H0).padStart(2,'0')}:00</div>`).join('');
+  const ncols=wdays.length;
   const colsHtml=wdays.map(d=>{
     const date=ds(d),apts=forDate(date),lay=layout(apts);
     const hlines=Array.from({length:HSPAN+1},(_,i)=>`<div class="hline" style="top:${i*60}px"></div>`).join('');
@@ -663,8 +724,8 @@ function renderWeek(){
     return `<div class="wcol" data-date="${date}">${hlines}${halflines}${aptsHtml}</div>`;
   }).join('');
   document.getElementById('main').innerHTML=`<div class="wwrap">
-    <div class="whdr"><div class="whdr-time"></div>${hdrHtml}</div>
-    <div class="wbody" id="wbody"><div class="tcol">${tlabels}</div><div class="wgrid" id="wgrid">${colsHtml}</div></div>
+    <div class="whdr" style="grid-template-columns:52px repeat(${ncols},1fr)"><div class="whdr-time"></div>${hdrHtml}</div>
+    <div class="wbody" id="wbody"><div class="tcol">${tlabels}</div><div class="wgrid" style="grid-template-columns:repeat(${ncols},1fr)" id="wgrid">${colsHtml}</div></div>
   </div>`;
   document.getElementById('wbody').scrollTop=60;
   document.getElementById('wgrid').onclick=e=>{
@@ -673,6 +734,48 @@ function renderWeek(){
     const rect=col.getBoundingClientRect();
     const y=Math.max(0,Math.min(TOTPX-1,e.clientY-rect.top));
     openModal(col.dataset.date,fmins(H0*60+Math.round(y/30)*30));
+  };
+}
+
+
+function renderDay(){
+  const date=ds(S.date);
+  const apts=forDate(date);
+  const lay=layout(apts);
+  const dw=S.date.getDay(),di=dw===0?6:dw-1;
+  const tlabels=Array.from({length:HSPAN+1},(_,i)=>`<div class="tlabel" style="top:${i*60}px">${String(i+H0).padStart(2,'0')}:00</div>`).join('');
+  const hlines=Array.from({length:HSPAN+1},(_,i)=>`<div class="hline" style="top:${i*60}px"></div>`).join('');
+  const halflines=Array.from({length:HSPAN},(_,i)=>`<div class="hline-half" style="top:${i*60+30}px"></div>`).join('');
+  const aptsHtml=apts.map(apt=>{
+    const {ci,n}=lay[apt.id],p=getPhysio(apt.physiotherapist);
+    const top=mins(apt.startTime)-H0*60,h=Math.max(mins(apt.endTime)-mins(apt.startTime),18);
+    const w=`calc(${100/n}% - 4px)`,l=`calc(${ci*100/n}% + 2px)`;
+    return `<div class="wapt" data-id="${apt.id}" style="top:${top}px;height:${h}px;width:${w};left:${l};background:${p.main}"
+      title="${apt.patientName}\n${apt.startTime}–${apt.endTime}${apt.notes?'\n'+apt.notes:''}">
+      <div class="wapt-name">${apt.patientName}</div>
+      ${h>=28?`<div class="wapt-time">${apt.startTime}–${apt.endTime}</div>`:''}
+      ${h>=44&&apt.service?`<div class="wapt-svc">${apt.service}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('main').innerHTML=`<div class="day-wrap">
+    <div class="day-head">
+      <div class="whdr-time"></div>
+      <div class="day-head-date${isToday(date)?' today':''}">
+        <div class="day-date-name">${DAYS[di]}</div>
+        <div class="day-date-num">${S.date.getDate()} ${MONTHS[S.date.getMonth()]}</div>
+      </div>
+    </div>
+    <div class="day-body" id="dayBody">
+      <div class="tcol">${tlabels}</div>
+      <div class="day-col" id="dayCol" data-date="${date}">${hlines}${halflines}${aptsHtml}</div>
+    </div>
+  </div>`;
+  document.getElementById('dayBody').scrollTop=60;
+  document.getElementById('dayCol').onclick=e=>{
+    const apt=e.target.closest('.wapt'); if(apt){openModal(null,null,apt.dataset.id);return;}
+    const rect=e.currentTarget.getBoundingClientRect();
+    const y=Math.max(0,Math.min(TOTPX-1,e.clientY-rect.top));
+    openModal(date,fmins(H0*60+Math.round(y/30)*30));
   };
 }
 
@@ -693,7 +796,16 @@ function openModal(date,time,editId=null){
       document.getElementById('fEnd').value  =apt.endTime;
       document.getElementById('fNotes').value=apt.notes||'';
       document.getElementById('fSvc').value  =apt.service||'';
+      document.getElementById('fPrice').value=apt.price||'';
+      if(apt.paymentMethod) selPayMethod(apt.paymentMethod);
       selPhysio(apt.physiotherapist); updateDurHL();
+      // Mostrar total acumulado
+      const {total,count}=calcTotal(apt.patientName,apt.id);
+      if(count>0){
+        document.getElementById('totalRow').style.display='flex';
+        document.getElementById('totalValue').textContent=total.toFixed(2)+' €';
+        document.getElementById('totalDetail').textContent='('+count+' sesión'+(count!==1?'es':'')+')';
+      }
     }
   } else {
     document.getElementById('mtitle').textContent='Nueva cita';
@@ -713,6 +825,10 @@ function resetForm(date,time){
   document.getElementById('fNotes').value='';
   document.getElementById('fREnd').value ='';
   document.getElementById('fSvc').value  ='';
+  document.getElementById('fPrice').value ='';
+  document.getElementById('totalRow').style.display='none';
+  payMethod=null;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.rpill').forEach(b=>b.classList.toggle('on',b.dataset.r==='none'));
   document.getElementById('rEnd').classList.remove('show');
   updateDurHL();
@@ -766,10 +882,13 @@ async function submitApt(){
     date, startTime:start, endTime:end,
     physiotherapist:S.physio, service:document.getElementById('fSvc').value,
     notes:document.getElementById('fNotes').value.trim(),
+    price:parseFloat(document.getElementById('fPrice').value)||null,
+    paymentMethod:payMethod||null,
   };
+  const editId=S.editId;
   closeModal();
-  if(S.editId){
-    const existing=S.apts.find(a=>a.id===S.editId);
+  if(editId){
+    const existing=S.apts.find(a=>a.id===editId);
     await writeApt({...existing,...data}); toast('Cita actualizada ✓');
   } else if(S.recur==='none'){
     await writeApt({id:uid(),...data,recurringGroupId:null,recurringType:null}); toast('Cita guardada ✓');
@@ -794,10 +913,22 @@ function genRecurring(base,type,endStr,gid){
   return out;
 }
 
+function calcTotal(patientName, excludeId){
+  const apts=S.apts.filter(a=>a.patientName===patientName && a.id!==excludeId && a.price);
+  const total=apts.reduce((sum,a)=>sum+(parseFloat(a.price)||0),0);
+  return {total, count:apts.length};
+}
+
+function selPayMethod(method){
+  payMethod=method;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.toggle('on',b.dataset.pay===method));
+}
+
 async function handleDel(){
   const apt=S.apts.find(a=>a.id===S.editId); if(!apt) return;
+  const id=S.editId;
   if(apt.recurringGroupId){ document.getElementById('fView').style.display='none'; document.getElementById('dView').classList.add('show'); }
-  else { closeModal(); await eraseApt(S.editId); toast('Cita eliminada'); }
+  else { closeModal(); await eraseApt(id); toast('Cita eliminada'); }
 }
 
 // ── CONFIGURACIÓN ────────────────────────────────────────────────
@@ -859,8 +990,8 @@ document.getElementById('loginPass').onkeydown = e=>{ if(e.key==='Enter') handle
 document.getElementById('loginEmail').onkeydown = e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); };
 document.getElementById('btnLogout').onclick = handleLogout;
 
-document.getElementById('btnPrev').onclick=()=>{ S.view==='month'?S.date.setMonth(S.date.getMonth()-1):S.date.setDate(S.date.getDate()-7); render(); };
-document.getElementById('btnNext').onclick=()=>{ S.view==='month'?S.date.setMonth(S.date.getMonth()+1):S.date.setDate(S.date.getDate()+7); render(); };
+document.getElementById('btnPrev').onclick=()=>{ if(S.view==='month') S.date.setMonth(S.date.getMonth()-1); else if(S.view==='day') S.date.setDate(S.date.getDate()-1); else S.date.setDate(S.date.getDate()-7); render(); };
+document.getElementById('btnNext').onclick=()=>{ if(S.view==='month') S.date.setMonth(S.date.getMonth()+1); else if(S.view==='day') S.date.setDate(S.date.getDate()+1); else S.date.setDate(S.date.getDate()+7); render(); };
 document.getElementById('btnToday').onclick=()=>{ S.date=new Date(); render(); };
 document.getElementById('btnNew').onclick=()=>openModal();
 document.getElementById('btnCfg').onclick=openSettings;
@@ -868,7 +999,7 @@ document.getElementById('mclose').onclick=closeModal;
 document.getElementById('btnCancel').onclick=closeModal;
 document.getElementById('btnSave').onclick=submitApt;
 document.getElementById('btnDel').onclick=handleDel;
-document.getElementById('dThis').onclick=async()=>{ closeModal(); await eraseApt(S.editId); toast('Cita eliminada'); };
+document.getElementById('dThis').onclick=async()=>{ const id=S.editId; closeModal(); await eraseApt(id); toast('Cita eliminada'); };
 document.getElementById('dAll').onclick=async()=>{
   const gid=S.apts.find(a=>a.id===S.editId)?.recurringGroupId; closeModal();
   if(gid){ await Promise.all(S.apts.filter(a=>a.recurringGroupId===gid).map(a=>eraseApt(a.id))); toast('Serie eliminada'); }
@@ -896,7 +1027,13 @@ document.getElementById('rPills').onclick=e=>{
   document.querySelectorAll('.rpill').forEach(b=>b.classList.toggle('on',b===btn));
   document.getElementById('rEnd').classList.toggle('show',S.recur!=='none');
 };
-document.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>{ S.view=b.dataset.v; document.querySelectorAll('.vbtn').forEach(x=>x.classList.toggle('on',x===b)); render(); });
+document.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>{
+  S.view=b.dataset.v;
+  document.querySelectorAll('.vbtn').forEach(x=>x.classList.toggle('on',x===b));
+  // Weekend toggle only makes sense in week view
+  document.getElementById('btnWknd').style.display=S.view==='week'?'':'none';
+  render();
+});
 document.getElementById('cfgClose').onclick=closeSettings;
 document.getElementById('cfgDone').onclick=closeSettings;
 document.getElementById('cfgOverlay').onclick=e=>{ if(e.target===e.currentTarget) closeSettings(); };
@@ -908,6 +1045,12 @@ document.querySelectorAll('.stab').forEach(b=>b.onclick=()=>{
 });
 document.getElementById('physPalette').onclick=e=>{ const btn=e.target.closest('.cpick'); if(!btn) return; pickColor=btn.dataset.c; renderPalette(); };
 document.getElementById('svcDurOpts').onclick=e=>{ const btn=e.target.closest('.dur-opt'); if(!btn) return; pickSvcDur=+btn.dataset.d; document.querySelectorAll('.dur-opt').forEach(b=>b.classList.toggle('on',b===btn)); };
+document.getElementById('btnWknd').onclick=()=>{
+  S.showWeekend=!S.showWeekend;
+  document.getElementById('btnWknd').classList.toggle('on',S.showWeekend);
+  if(S.view==='week') render();
+};
+document.getElementById('payBtns').onclick=e=>{ const btn=e.target.closest('.pay-btn'); if(!btn) return; selPayMethod(btn.dataset.pay); };
 document.getElementById('addPhysioBtn').onclick=addPhysio;
 document.getElementById('addSvcBtn').onclick=addService;
 document.getElementById('newPhysioName').onkeydown=e=>{ if(e.key==='Enter') addPhysio(); };
